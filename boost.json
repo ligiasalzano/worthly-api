@@ -9,6 +9,7 @@
     "nightwatch": false,
     "sail": true,
     "skills": [
+        "ai-sdk-development",
         "laravel-best-practices",
         "pest-testing"
     ]

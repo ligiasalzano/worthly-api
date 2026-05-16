@@ -1,0 +1,6 @@
+phase-01-foundation-database.md|Phase 1 — Foundation & Database
+phase-02-authentication-api.md|Phase 2 — Authentication API
+phase-03-ai-agent-product-analysis.md|Phase 3 — AI Agent (Product Analysis)
+phase-04-analysis-api.md|Phase 4 — Analysis API
+phase-05-api-quality-errors-documentation.md|Phase 5 — API Quality, Errors & Documentation
+phase-06-hardening-final-pass.md|Phase 6 — Hardening & Final Pass
