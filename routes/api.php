@@ -4,11 +4,17 @@ use App\Http\Controllers\Api\AnalysisController;
 use App\Http\Controllers\Api\Auth\LoginController;
 use App\Http\Controllers\Api\Auth\LogoutController;
 use App\Http\Controllers\Api\Auth\RegisterController;
+use App\Http\Controllers\Api\Docs\OpenApiSpecController;
 use App\Http\Controllers\Api\MeController;
+use App\Http\Middleware\ForceJsonResponse;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/register', RegisterController::class);
 Route::post('/login', LoginController::class);
+
+Route::get('/openapi.yaml', OpenApiSpecController::class)
+    ->withoutMiddleware([ForceJsonResponse::class])
+    ->name('docs.openapi');
 
 Route::middleware('auth:sanctum')->group(function (): void {
     Route::post('/logout', LogoutController::class);

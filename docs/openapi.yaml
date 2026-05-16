@@ -1,0 +1,560 @@
+openapi: 3.1.0
+info:
+  title: Worthly API
+  version: 1.0.0
+  description: |
+    HTTP JSON API for Worthly, a product buying-recommendation assistant powered by an LLM.
+    All endpoints under `/api` return JSON. Protected endpoints require a Sanctum personal
+    access token issued by `/api/register` or `/api/login` and presented as `Authorization: Bearer <token>`.
+
+servers:
+  - url: http://localhost
+    description: Local development (Laravel Sail)
+
+tags:
+  - name: Auth
+    description: Registration, login, logout and authenticated user profile.
+  - name: Analyses
+    description: Create, list, retrieve, delete product analyses and download their attached image.
+  - name: Docs
+    description: API documentation discovery endpoints.
+
+security:
+  - bearerAuth: []
+
+paths:
+  /api/register:
+    post:
+      tags: [Auth]
+      summary: Register a new user and issue a bearer token.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: User registered. Returns a fresh bearer token.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthTokenResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /api/login:
+    post:
+      tags: [Auth]
+      summary: Log in with email/password and issue a bearer token.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Credentials valid. Returns a fresh bearer token.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthTokenResponse'
+        '401':
+          $ref: '#/components/responses/UnauthenticatedError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /api/logout:
+    post:
+      tags: [Auth]
+      summary: Revoke the current bearer token.
+      responses:
+        '204':
+          description: Token revoked. Empty body.
+        '401':
+          $ref: '#/components/responses/UnauthenticatedError'
+
+  /api/me:
+    get:
+      tags: [Auth]
+      summary: Return the authenticated user.
+      responses:
+        '200':
+          description: Authenticated user profile.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/UserResource'
+                required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthenticatedError'
+
+  /api/analyses:
+    get:
+      tags: [Analyses]
+      summary: List the authenticated user's product analyses (paginated, 15 per page).
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+          required: false
+          description: Page number for pagination.
+      responses:
+        '200':
+          description: Paginated list of analyses owned by the authenticated user.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalysisListPaginatedResponse'
+        '401':
+          $ref: '#/components/responses/UnauthenticatedError'
+    post:
+      tags: [Analyses]
+      summary: Submit a new product analysis (text query or product image).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StoreAnalysisRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/StoreAnalysisRequest'
+      responses:
+        '201':
+          description: Analysis created.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/AnalysisResource'
+                required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthenticatedError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '502':
+          $ref: '#/components/responses/ServerError'
+
+  /api/analyses/{analysis}:
+    parameters:
+      - in: path
+        name: analysis
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+        description: Numeric id of the analysis.
+    get:
+      tags: [Analyses]
+      summary: Retrieve a single analysis owned by the authenticated user.
+      responses:
+        '200':
+          description: Analysis found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/AnalysisResource'
+                required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthenticatedError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+    delete:
+      tags: [Analyses]
+      summary: Delete an analysis owned by the authenticated user.
+      responses:
+        '204':
+          description: Analysis deleted. Empty body.
+        '401':
+          $ref: '#/components/responses/UnauthenticatedError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /api/analyses/{analysis}/image:
+    parameters:
+      - in: path
+        name: analysis
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+        description: Numeric id of the analysis.
+    get:
+      tags: [Analyses]
+      summary: Download the original image attached to an image analysis.
+      responses:
+        '200':
+          description: Binary image payload streamed from the private storage disk.
+          content:
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+            image/png:
+              schema:
+                type: string
+                format: binary
+            image/webp:
+              schema:
+                type: string
+                format: binary
+        '401':
+          $ref: '#/components/responses/UnauthenticatedError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /api/openapi.yaml:
+    get:
+      tags: [Docs]
+      summary: Serve this OpenAPI specification as YAML.
+      security: []
+      responses:
+        '200':
+          description: OpenAPI 3.1 specification (YAML).
+          content:
+            application/yaml:
+              schema:
+                type: string
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: Sanctum
+
+  schemas:
+    RegisterRequest:
+      type: object
+      required: [name, email, password, password_confirmation]
+      properties:
+        name:
+          type: string
+          maxLength: 255
+        email:
+          type: string
+          format: email
+          maxLength: 255
+        password:
+          type: string
+          format: password
+          minLength: 8
+        password_confirmation:
+          type: string
+          format: password
+          minLength: 8
+
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+
+    AuthTokenResponse:
+      type: object
+      required: [token, token_type, user]
+      properties:
+        token:
+          type: string
+          description: Plain-text Sanctum bearer token.
+        token_type:
+          type: string
+          enum: [Bearer]
+        user:
+          type: object
+          required: [id, name, email]
+          properties:
+            id:
+              type: integer
+            name:
+              type: string
+            email:
+              type: string
+              format: email
+
+    UserResource:
+      type: object
+      required: [id, name, email, created_at]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        created_at:
+          type: string
+          format: date-time
+
+    StoreAnalysisRequest:
+      oneOf:
+        - $ref: '#/components/schemas/StoreAnalysisTextRequest'
+        - $ref: '#/components/schemas/StoreAnalysisImageRequest'
+      discriminator:
+        propertyName: input_type
+        mapping:
+          text: '#/components/schemas/StoreAnalysisTextRequest'
+          image: '#/components/schemas/StoreAnalysisImageRequest'
+
+    StoreAnalysisTextRequest:
+      type: object
+      required: [input_type, query]
+      properties:
+        input_type:
+          type: string
+          enum: [text]
+        query:
+          type: string
+          maxLength: 1000
+
+    StoreAnalysisImageRequest:
+      type: object
+      required: [input_type, image]
+      properties:
+        input_type:
+          type: string
+          enum: [image]
+        image:
+          type: string
+          format: binary
+          description: Image file (jpeg, png or webp), max 8 MB.
+
+    SimilarProduct:
+      type: object
+      required: [name, reason]
+      properties:
+        name:
+          type: string
+        reason:
+          type: string
+        price_reference:
+          type: string
+          nullable: true
+
+    AnalysisResource:
+      type: object
+      required:
+        - id
+        - product
+        - summary
+        - similar_products
+        - cost_benefit_analysis
+        - recommendation
+        - input_type
+        - image_url
+        - created_at
+      properties:
+        id:
+          type: integer
+        product:
+          type: object
+          required: [name]
+          properties:
+            name:
+              type: string
+            category:
+              type: string
+              nullable: true
+            estimated_price_range:
+              type: string
+              nullable: true
+        summary:
+          type: string
+          nullable: true
+        similar_products:
+          type: array
+          maxItems: 5
+          items:
+            $ref: '#/components/schemas/SimilarProduct'
+        cost_benefit_analysis:
+          type: string
+          nullable: true
+        recommendation:
+          type: object
+          required: [decision, reason]
+          properties:
+            decision:
+              type: string
+              enum:
+                - buy
+                - buy_if_price_is_good
+                - consider_alternatives
+                - wait
+                - do_not_buy
+            reason:
+              type: string
+        input_type:
+          type: string
+          enum: [text, image]
+        image_url:
+          type: string
+          format: uri
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+
+    AnalysisListResource:
+      type: object
+      required: [id, product_name, input_type, recommendation, created_at]
+      properties:
+        id:
+          type: integer
+        product_name:
+          type: string
+        input_type:
+          type: string
+          enum: [text, image]
+        recommendation:
+          type: object
+          required: [decision, reason]
+          properties:
+            decision:
+              type: string
+              enum:
+                - buy
+                - buy_if_price_is_good
+                - consider_alternatives
+                - wait
+                - do_not_buy
+            reason:
+              type: string
+        created_at:
+          type: string
+          format: date-time
+
+    PaginationLinks:
+      type: object
+      properties:
+        first:
+          type: string
+          nullable: true
+        last:
+          type: string
+          nullable: true
+        prev:
+          type: string
+          nullable: true
+        next:
+          type: string
+          nullable: true
+
+    PaginationMeta:
+      type: object
+      properties:
+        current_page:
+          type: integer
+        from:
+          type: integer
+          nullable: true
+        last_page:
+          type: integer
+        path:
+          type: string
+        per_page:
+          type: integer
+        to:
+          type: integer
+          nullable: true
+        total:
+          type: integer
+
+    AnalysisListPaginatedResponse:
+      type: object
+      required: [data, links, meta]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/AnalysisListResource'
+        links:
+          $ref: '#/components/schemas/PaginationLinks'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+
+    ValidationError:
+      type: object
+      required: [message, errors]
+      properties:
+        message:
+          type: string
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+
+    UnauthenticatedError:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string
+          enum: [Unauthenticated.]
+
+    NotFoundError:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string
+          enum: [Not Found.]
+
+    ServerError:
+      type: object
+      required: [error_code, message]
+      properties:
+        error_code:
+          type: string
+        message:
+          type: string
+
+  responses:
+    ValidationError:
+      description: Request payload failed validation.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ValidationError'
+
+    UnauthenticatedError:
+      description: Request was not authenticated or token was rejected.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/UnauthenticatedError'
+
+    NotFoundError:
+      description: Resource not found, or the authenticated user is not its owner.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/NotFoundError'
+
+    ServerError:
+      description: Upstream LLM provider failure or unexpected server error.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ServerError'
