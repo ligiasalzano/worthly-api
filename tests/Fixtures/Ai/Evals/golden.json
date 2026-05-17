@@ -1,0 +1,142 @@
+[
+    {
+        "id": "iphone-15-buy",
+        "input": "vale a pena comprar iPhone 15?",
+        "expected_decision": "buy",
+        "acceptable_decisions": ["buy", "buy_if_price_is_good"],
+        "expected_must_cite_domains": ["rtings.com", "wirecutter.com", "techradar.com", "gsmarena.com", "tomshardware.com", "cnet.com"]
+    },
+    {
+        "id": "samsung-s24-buy",
+        "input": "Samsung Galaxy S24 review worth it?",
+        "expected_decision": "buy",
+        "acceptable_decisions": ["buy", "buy_if_price_is_good"],
+        "expected_must_cite_domains": ["rtings.com", "wirecutter.com", "techradar.com", "gsmarena.com", "tomshardware.com", "cnet.com"]
+    },
+    {
+        "id": "pixel-8-buy",
+        "input": "Should I buy a Google Pixel 8?",
+        "expected_decision": "buy",
+        "acceptable_decisions": ["buy", "buy_if_price_is_good"],
+        "expected_must_cite_domains": ["rtings.com", "wirecutter.com", "techradar.com", "gsmarena.com", "tomshardware.com", "cnet.com"]
+    },
+    {
+        "id": "sony-wh1000xm5-buy",
+        "input": "Sony WH-1000XM5 are they worth the price?",
+        "expected_decision": "buy",
+        "acceptable_decisions": ["buy", "buy_if_price_is_good"],
+        "expected_must_cite_domains": ["rtings.com", "wirecutter.com", "techradar.com", "cnet.com", "tomshardware.com"]
+    },
+    {
+        "id": "airpods-pro-2",
+        "input": "AirPods Pro 2 vale a pena?",
+        "expected_decision": "buy",
+        "acceptable_decisions": ["buy", "buy_if_price_is_good"],
+        "expected_must_cite_domains": ["rtings.com", "wirecutter.com", "techradar.com", "cnet.com"]
+    },
+    {
+        "id": "ipad-air-m2",
+        "input": "iPad Air M2 worth buying?",
+        "expected_decision": "buy",
+        "acceptable_decisions": ["buy", "buy_if_price_is_good", "consider_alternatives"],
+        "expected_must_cite_domains": ["rtings.com", "wirecutter.com", "techradar.com", "cnet.com", "tomshardware.com"]
+    },
+    {
+        "id": "macbook-air-m3",
+        "input": "MacBook Air M3 review",
+        "expected_decision": "buy",
+        "acceptable_decisions": ["buy", "buy_if_price_is_good"],
+        "expected_must_cite_domains": ["rtings.com", "wirecutter.com", "techradar.com", "cnet.com", "tomshardware.com"]
+    },
+    {
+        "id": "dell-xps-13-buy",
+        "input": "Dell XPS 13 vale a pena em 2026?",
+        "expected_decision": "consider_alternatives",
+        "acceptable_decisions": ["consider_alternatives", "wait", "buy_if_price_is_good"],
+        "expected_must_cite_domains": ["wirecutter.com", "techradar.com", "tomshardware.com", "cnet.com"]
+    },
+    {
+        "id": "logitech-mx-master-3s",
+        "input": "Logitech MX Master 3S worth it?",
+        "expected_decision": "buy",
+        "acceptable_decisions": ["buy", "buy_if_price_is_good"],
+        "expected_must_cite_domains": ["wirecutter.com", "techradar.com", "tomshardware.com", "cnet.com"]
+    },
+    {
+        "id": "kindle-paperwhite",
+        "input": "Kindle Paperwhite worth buying?",
+        "expected_decision": "buy",
+        "acceptable_decisions": ["buy", "buy_if_price_is_good"],
+        "expected_must_cite_domains": ["wirecutter.com", "techradar.com", "cnet.com"]
+    },
+    {
+        "id": "asus-rog-ally-x",
+        "input": "ASUS ROG Ally X review",
+        "expected_decision": "consider_alternatives",
+        "acceptable_decisions": ["buy", "buy_if_price_is_good", "consider_alternatives"],
+        "expected_must_cite_domains": ["techradar.com", "tomshardware.com", "cnet.com"]
+    },
+    {
+        "id": "lg-c4-oled",
+        "input": "LG C4 OLED 65 vale a pena?",
+        "expected_decision": "buy",
+        "acceptable_decisions": ["buy", "buy_if_price_is_good"],
+        "expected_must_cite_domains": ["rtings.com", "wirecutter.com", "techradar.com", "cnet.com"]
+    },
+    {
+        "id": "sony-bravia-a95l",
+        "input": "Sony Bravia A95L review",
+        "expected_decision": "buy_if_price_is_good",
+        "acceptable_decisions": ["buy", "buy_if_price_is_good", "consider_alternatives"],
+        "expected_must_cite_domains": ["rtings.com", "wirecutter.com", "techradar.com", "cnet.com"]
+    },
+    {
+        "id": "playstation-5-pro",
+        "input": "PlayStation 5 Pro worth upgrading?",
+        "expected_decision": "consider_alternatives",
+        "acceptable_decisions": ["buy_if_price_is_good", "consider_alternatives", "wait"],
+        "expected_must_cite_domains": ["techradar.com", "tomshardware.com", "cnet.com"]
+    },
+    {
+        "id": "garmin-fenix-7",
+        "input": "Garmin Fenix 7 review",
+        "expected_decision": "buy",
+        "acceptable_decisions": ["buy", "buy_if_price_is_good"],
+        "expected_must_cite_domains": ["wirecutter.com", "techradar.com", "cnet.com"]
+    },
+    {
+        "id": "dyson-v15",
+        "input": "Dyson V15 Detect worth the price?",
+        "expected_decision": "buy_if_price_is_good",
+        "acceptable_decisions": ["buy", "buy_if_price_is_good", "consider_alternatives"],
+        "expected_must_cite_domains": ["wirecutter.com", "techradar.com", "cnet.com"]
+    },
+    {
+        "id": "instant-pot-pro",
+        "input": "Instant Pot Pro worth it?",
+        "expected_decision": "buy",
+        "acceptable_decisions": ["buy", "buy_if_price_is_good"],
+        "expected_must_cite_domains": ["wirecutter.com", "techradar.com", "cnet.com"]
+    },
+    {
+        "id": "vitamix-a3500",
+        "input": "Vitamix A3500 worth the price?",
+        "expected_decision": "buy_if_price_is_good",
+        "acceptable_decisions": ["buy", "buy_if_price_is_good", "consider_alternatives"],
+        "expected_must_cite_domains": ["wirecutter.com", "techradar.com", "cnet.com"]
+    },
+    {
+        "id": "anker-prime-charger",
+        "input": "Anker Prime 100W charger worth buying?",
+        "expected_decision": "buy",
+        "acceptable_decisions": ["buy", "buy_if_price_is_good"],
+        "expected_must_cite_domains": ["wirecutter.com", "techradar.com", "tomshardware.com", "cnet.com"]
+    },
+    {
+        "id": "asjkdfhakjsdhf",
+        "input": "asjkdfhakjsdhf qwerty zzz random",
+        "expected_decision": "insufficient_evidence",
+        "acceptable_decisions": ["insufficient_evidence"],
+        "expected_must_cite_domains": []
+    }
+]

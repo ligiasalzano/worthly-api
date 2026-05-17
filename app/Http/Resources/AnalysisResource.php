@@ -36,6 +36,15 @@ class AnalysisResource extends JsonResource
                 'decision' => $this->recommendationDecision?->slug,
                 'reason' => $this->recommendation_reason,
             ],
+            'confidence' => $this->confidence,
+            'degraded' => (bool) $this->degraded,
+            'sources' => $this->whenLoaded('sources', fn () => $this->sources->map(fn ($source) => [
+                'position' => $source->position,
+                'source_channel' => $source->source_channel,
+                'url' => $source->url,
+                'title' => $source->title,
+                'published_at' => $source->published_at,
+            ])->all(), []),
             'input_type' => $inputTypeSlug,
             'image_url' => $this->image_path
                 ? route('analyses.image', ['analysis' => $this->id])

@@ -57,6 +57,11 @@ class Analysis extends Model
         return $this->hasMany(SimilarProduct::class)->orderBy('sort_order');
     }
 
+    public function sources(): HasMany
+    {
+        return $this->hasMany(AnalysisSource::class)->orderBy('position');
+    }
+
     public function inputTypeEnum(): InputTypeEnum
     {
         return InputTypeEnum::from($this->inputType->slug);
