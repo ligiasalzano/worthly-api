@@ -1,6 +1,7 @@
-phase-01-foundation-database.md|Phase 1 — Foundation & Database
-phase-02-authentication-api.md|Phase 2 — Authentication API
-phase-03-ai-agent-product-analysis.md|Phase 3 — AI Agent (Product Analysis)
-phase-04-analysis-api.md|Phase 4 — Analysis API
-phase-05-api-quality-errors-documentation.md|Phase 5 — API Quality, Errors & Documentation
-phase-06-hardening-final-pass.md|Phase 6 — Hardening & Final Pass
+phase-00-preconditions-already-in-place.md|Phase 0 — Preconditions (already in place)
+phase-01-foundations-no-quality-wins-yet-unlocks-every-later-phase.md|Phase 1 — Foundations (no quality wins yet; unlocks every later phase)
+phase-02-query-understanding-vertical-retrieval-the-biggest-quality-jump.md|Phase 2 — Query understanding & vertical retrieval (the biggest quality jump)
+phase-03-rerank-filters.md|Phase 3 — Rerank & filters
+phase-04-evidence-verifier-optional-flag-gated-off-by-default.md|Phase 4 — Evidence verifier (optional, flag-gated; off by default)
+phase-05-hardening-observability-evals.md|Phase 5 — Hardening, observability, evals
+phase-06-cleanup-deprecation.md|Phase 6 — Cleanup & deprecation

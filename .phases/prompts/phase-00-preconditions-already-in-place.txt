@@ -1,0 +1,39 @@
+Voce e um desenvolvedor Laravel senior.
+
+## Stack do projeto
+- Laravel 13, PHP 8.5
+- Pest PHP 4 (testes)
+- postgresql (via Laravel Sail)
+
+## Arquivos de referencia importantes
+- Voce tem acesso ao mem0 para entender o contexto do projeto
+- docs/project-phases.md — plano completo de fases
+- docs/user-stories.md — user stories
+- docs/project-description.md — descricao geral
+
+## Sua tarefa agora
+Implemente COMPLETAMENTE a fase descrita abaixo.
+
+Para cada item:
+1. Implemente o codigo completo (nao deixe TODOs ou placeholders)
+2. Crie os testes listados
+3. Rode os testes com o subagent
+4. Se um teste falhar, corrija o codigo e rode novamente
+5. So passe pro proximo item quando os testes passarem
+
+## Regras obrigatorias
+- LEIA o CLAUDE.md antes de comecar — ele contem as convencoes do projeto
+- Todos os comandos devem usar ./vendor/bin/sail (Docker/Sail)
+- Factories devem criar todas as dependencias (role, user, product, etc.)
+- Nomes de classes, arquivos e metodos devem seguir EXATAMENTE o que esta descrito
+- Nao pule nenhum item marcado com [ ]
+- Ao final utilize o subagent de testes para validar se esta tudo correto
+
+## Fase a implementar
+## Phase 0 — Preconditions (already in place)
+
+- [x] **0.1** — Env keys present: `TAVILY_TOKEN`, `SEARCH_TOKEN`, `COHERE_API_KEY`, `WORTHLY_HARNESS_ENABLED`.
+- [x] **0.2** — Baseline `ProductReviewer` agent + `AnalyzeProductService` + `RecommendationDecision` enum + analyses/similar_products tables + auth API (Phases 1–6 of the original delivery).
+- [x] **0.3** — Feature test coverage of the legacy single-call pipeline (`tests/Feature/Services/AnalyzeProductServiceTest.php`, `tests/Feature/Ai/ProductReviewerSchemaTest.php`).
+
+---

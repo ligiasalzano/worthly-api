@@ -36,21 +36,21 @@ class ProductReviewer implements Agent, HasStructuredOutput
         return [
             'product' => $schema->object(fn ($p) => [
                 'name' => $p->string()->required(),
-                'category' => $p->string()->nullable(),
-                'estimated_price_range' => $p->string()->nullable(),
+                'category' => $p->string()->nullable()->required(),
+                'estimated_price_range' => $p->string()->nullable()->required(),
             ])->required(),
-            'summary' => $schema->string()->nullable(),
+            'summary' => $schema->string()->nullable()->required(),
             'similar_products' => $schema->array()
                 ->max(5)
                 ->items(
                     $schema->object(fn ($sp) => [
                         'name' => $sp->string()->required(),
                         'reason' => $sp->string()->required(),
-                        'price_reference' => $sp->string()->nullable(),
+                        'price_reference' => $sp->string()->nullable()->required(),
                     ])
                 )
                 ->required(),
-            'cost_benefit_analysis' => $schema->string()->nullable(),
+            'cost_benefit_analysis' => $schema->string()->nullable()->required(),
             'recommendation' => $schema->object(fn ($r) => [
                 'decision' => $r->string()
                     ->enum(array_map(fn (RecommendationDecision $case) => $case->value, RecommendationDecision::cases()))
