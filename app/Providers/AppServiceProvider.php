@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Ai\Harness\Contracts\Reranker;
+use App\Ai\Harness\Rerank\CohereReranker;
 use App\Ai\Harness\Retrieval\AdapterRegistry;
 use App\Ai\Harness\Retrieval\Clients\MercadoLivreClient;
 use App\Ai\Harness\Retrieval\Clients\SearchApiClient;
@@ -16,6 +18,9 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(TavilyClient::class);
         $this->app->singleton(SearchApiClient::class);
         $this->app->singleton(MercadoLivreClient::class);
+
+        $this->app->singleton(CohereReranker::class);
+        $this->app->bind(Reranker::class, CohereReranker::class);
 
         $this->app->bind(RetrievalRouter::class, function ($app) {
             $registry = $app->make(AdapterRegistry::class);

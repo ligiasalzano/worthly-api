@@ -7,6 +7,7 @@ use App\Ai\Agents\ProductReviewer;
 use App\Ai\Agents\QueryEnricher;
 use App\Ai\Harness\Dto\EnrichedQuery;
 use App\Ai\Harness\Dto\EvidenceBundle;
+use App\Ai\Harness\Rerank\RerankPipeline;
 use App\Ai\Harness\Retrieval\RetrievalRouter;
 use App\Enums\Intent;
 use App\Enums\RecommendationDecision as RecommendationDecisionEnum;
@@ -27,6 +28,7 @@ class AnalysisPipeline
         protected QueryEnricher $enricher,
         protected ProductIdentifier $identifier,
         protected RetrievalRouter $router,
+        protected RerankPipeline $rerank,
         protected ProductReviewer $reviewer,
     ) {}
 
@@ -68,6 +70,9 @@ class AnalysisPipeline
             );
         }
 
+        $bundle = $this->rerank->process($enriched, $bundle);
+        $rerankDegraded = $this->rerank->wasDegraded();
+
         $response = $this->callReviewer($enriched, $bundle);
 
         return $this->persistAgentResponse(
@@ -79,6 +84,7 @@ class AnalysisPipeline
             evidenceBundle: $bundle,
             response: $response,
             retrievalCalls: $retrievalCalls,
+            degraded: $rerankDegraded,
             startedAt: $startedAt,
             startMs: $startMs,
         );
@@ -122,6 +128,9 @@ class AnalysisPipeline
             );
         }
 
+        $bundle = $this->rerank->process($enriched, $bundle);
+        $rerankDegraded = $this->rerank->wasDegraded();
+
         $response = $this->callReviewer($enriched, $bundle);
 
         return $this->persistAgentResponse(
@@ -133,6 +142,7 @@ class AnalysisPipeline
             evidenceBundle: $bundle,
             response: $response,
             retrievalCalls: $retrievalCalls,
+            degraded: $rerankDegraded,
             startedAt: $startedAt,
             startMs: $startMs,
         );
@@ -171,10 +181,11 @@ class AnalysisPipeline
         EvidenceBundle $evidenceBundle,
         $response,
         int $retrievalCalls,
+        bool $degraded,
         Carbon $startedAt,
         int $startMs,
     ): Analysis {
-        return DB::transaction(function () use ($user, $inputTypeSlug, $query, $imagePath, $enriched, $evidenceBundle, $response, $retrievalCalls, $startedAt, $startMs) {
+        return DB::transaction(function () use ($user, $inputTypeSlug, $query, $imagePath, $enriched, $evidenceBundle, $response, $retrievalCalls, $degraded, $startedAt, $startMs) {
             $data = $response->structured;
 
             $inputType = InputType::firstWhere('slug', $inputTypeSlug);
@@ -195,7 +206,7 @@ class AnalysisPipeline
                 'recommendation_reason' => $data['recommendation']['reason'] ?? null,
                 'raw_response' => $data,
                 'confidence' => $data['confidence'] ?? 'medium',
-                'degraded' => false,
+                'degraded' => $degraded,
             ]);
 
             foreach ($data['similar_products'] ?? [] as $index => $similar) {
@@ -211,7 +222,7 @@ class AnalysisPipeline
                 analysis: $analysis,
                 retrievalCalls: $retrievalCalls,
                 evidenceCount: $evidenceBundle->count(),
-                degraded: false,
+                degraded: $degraded,
                 startedAt: $startedAt,
                 startMs: $startMs,
             );

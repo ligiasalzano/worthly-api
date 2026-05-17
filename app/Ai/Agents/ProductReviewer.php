@@ -2,6 +2,8 @@
 
 namespace App\Ai\Agents;
 
+use App\Ai\Harness\Dto\EnrichedQuery;
+use App\Ai\Harness\Dto\EvidenceBundle;
 use App\Enums\RecommendationDecision;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Laravel\Ai\Contracts\Agent;
