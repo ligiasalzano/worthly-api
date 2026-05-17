@@ -1,7 +1,5 @@
 <?php
 
-use Illuminate\Support\Env;
-
 it('exposes every harness configuration key with non-null defaults', function () {
     $keys = [
         'worthly.harness.enabled',
@@ -47,24 +45,13 @@ it('exposes every harness configuration key with non-null defaults', function ()
     }
 });
 
-it('flips harness.enabled to false when WORTHLY_HARNESS_ENABLED=false', function () {
+it('always treats worthly.harness.enabled as on regardless of any env override', function () {
     $source = file_get_contents(config_path('worthly.php'));
-    expect($source)->toContain("env('WORTHLY_HARNESS_ENABLED'");
 
-    $repository = Env::getRepository();
-    $previous = $repository->get('WORTHLY_HARNESS_ENABLED');
+    expect($source)->not->toContain("env('WORTHLY_HARNESS_ENABLED'");
 
-    try {
-        $repository->set('WORTHLY_HARNESS_ENABLED', 'false');
+    $reloaded = require config_path('worthly.php');
 
-        $reloaded = require config_path('worthly.php');
-
-        expect($reloaded['harness']['enabled'])->toBeFalse();
-    } finally {
-        if ($previous === false) {
-            $repository->clear('WORTHLY_HARNESS_ENABLED');
-        } else {
-            $repository->set('WORTHLY_HARNESS_ENABLED', $previous);
-        }
-    }
+    expect($reloaded['harness']['enabled'])->toBeTrue();
+    expect(config('worthly.harness.enabled'))->toBeTrue();
 });

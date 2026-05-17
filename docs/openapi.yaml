@@ -119,6 +119,14 @@ paths:
     post:
       tags: [Analyses]
       summary: Submit a new product analysis (text query or product image).
+      deprecated: true
+      description: |
+        Legacy implementation backed by the `ProductReviewer::analyzeText` and
+        `ProductReviewer::analyzeImage` shims. These shims are scheduled for
+        removal once the frontend migrates to the grounded harness pipeline
+        (`AnalysisPipeline`). Continuing to call this endpoint is supported but
+        will be replaced; new clients should expect the same payload shape with
+        additional fields (`confidence`, `degraded`, `sources[]`).
       requestBody:
         required: true
         content:

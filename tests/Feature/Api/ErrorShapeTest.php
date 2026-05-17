@@ -1,13 +1,12 @@
 <?php
 
-use App\Ai\Agents\ProductReviewer;
+use App\Ai\Harness\AnalysisPipeline;
 use App\Enums\InputType;
+use App\Exceptions\LlmProviderException;
 use App\Models\Analysis;
 use App\Models\User;
 use Database\Seeders\InputTypeSeeder;
 use Database\Seeders\RecommendationDecisionSeeder;
-use Laravel\Ai\Exceptions\FailoverableException;
-use Laravel\Ai\Responses\StructuredAgentResponse;
 
 it('returns the Laravel validation error contract on 422', function () {
     $this->seed([InputTypeSeeder::class, RecommendationDecisionSeeder::class]);
@@ -64,14 +63,20 @@ it('returns error_code/message with no stack trace or SDK type names on 5xx', fu
     $this->seed([InputTypeSeeder::class, RecommendationDecisionSeeder::class]);
     $user = User::factory()->create();
 
-    $fake = new class extends ProductReviewer
+    $fake = new class extends AnalysisPipeline
     {
-        public function analyzeText(string $query): StructuredAgentResponse
+        public function __construct() {}
+
+        public function analyzeText(User $user, string $query): Analysis
         {
-            throw new FailoverableException('SDK internal detail that must not leak');
+            throw new LlmProviderException(
+                errorCode: 'llm_provider_failed',
+                message: 'The LLM provider failed to complete the analysis.',
+                previous: new RuntimeException('SDK internal detail that must not leak'),
+            );
         }
     };
-    $this->app->instance(ProductReviewer::class, $fake);
+    $this->app->instance(AnalysisPipeline::class, $fake);
 
     $response = $this->actingAs($user)->postJson('/api/analyses', [
         'input_type' => InputType::Text->value,

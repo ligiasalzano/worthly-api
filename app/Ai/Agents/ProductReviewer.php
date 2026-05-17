@@ -8,7 +8,6 @@ use App\Enums\RecommendationDecision;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Laravel\Ai\Contracts\Agent;
 use Laravel\Ai\Contracts\HasStructuredOutput;
-use Laravel\Ai\Files\Image;
 use Laravel\Ai\Promptable;
 use Laravel\Ai\Responses\StructuredAgentResponse;
 use Stringable;
@@ -60,27 +59,6 @@ class ProductReviewer implements Agent, HasStructuredOutput
                 'reason' => $r->string()->required(),
             ])->required(),
         ];
-    }
-
-    public function analyzeText(string $query): StructuredAgentResponse
-    {
-        return $this->prompt(
-            prompt: $query,
-            model: (string) config('worthly.llm.model'),
-        );
-    }
-
-    public function analyzeImage(string $imagePath, ?string $query = null): StructuredAgentResponse
-    {
-        $prompt = $query ?? 'Analyze this product image and provide a buying recommendation.';
-
-        return $this->prompt(
-            prompt: $prompt,
-            attachments: [
-                Image::fromStorage($imagePath, disk: 'analysis_images'),
-            ],
-            model: (string) config('worthly.llm.model'),
-        );
     }
 
     public function recommend(EnrichedQuery $query, EvidenceBundle $evidence): StructuredAgentResponse

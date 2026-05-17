@@ -28,7 +28,7 @@ return [
     */
 
     'harness' => [
-        'enabled' => env('WORTHLY_HARNESS_ENABLED', false),
+        'enabled' => true,
         'cheap_model' => env('WORTHLY_HARNESS_CHEAP_MODEL', 'gpt-5-mini'),
 
         'query_enricher' => [
