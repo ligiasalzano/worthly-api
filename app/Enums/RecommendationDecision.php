@@ -9,4 +9,5 @@ enum RecommendationDecision: string
     case ConsiderAlternatives = 'consider_alternatives';
     case Wait = 'wait';
     case DoNotBuy = 'do_not_buy';
+    case InsufficientEvidence = 'insufficient_evidence';
 }

@@ -28,10 +28,13 @@ class Analysis extends Model
         'cost_benefit_analysis',
         'recommendation_reason',
         'raw_response',
+        'confidence',
+        'degraded',
     ];
 
     protected $casts = [
         'raw_response' => 'array',
+        'degraded' => 'bool',
     ];
 
     public function user(): BelongsTo

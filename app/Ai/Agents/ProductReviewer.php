@@ -80,4 +80,35 @@ class ProductReviewer implements Agent, HasStructuredOutput
             model: (string) config('worthly.llm.model'),
         );
     }
+
+    public function recommend(EnrichedQuery $query, EvidenceBundle $evidence): StructuredAgentResponse
+    {
+        $prompt = $this->buildGroundedPrompt($query, $evidence);
+
+        return $this->prompt(
+            prompt: $prompt,
+            model: (string) config('worthly.llm.model'),
+        );
+    }
+
+    protected function buildGroundedPrompt(EnrichedQuery $query, EvidenceBundle $evidence): string
+    {
+        $lines = [
+            'Enriched query: '.$query->rawQuery,
+        ];
+
+        if ($query->productName !== null) {
+            $lines[] = 'Product: '.$query->productName;
+        }
+
+        $lines[] = '';
+        $lines[] = 'Evidence:';
+
+        foreach ($evidence->items as $index => $item) {
+            $id = 'S'.($index + 1);
+            $lines[] = sprintf('[%s] %s — %s — %s', $id, $item->title, $item->url, $item->snippet);
+        }
+
+        return implode("\n", $lines);
+    }
 }

@@ -1,0 +1,83 @@
+Voce e um desenvolvedor Laravel senior.
+
+## Stack do projeto
+- Laravel 13, PHP 8.5
+- Pest PHP 4 (testes)
+- postgresql (via Laravel Sail)
+
+## Arquivos de referencia importantes
+- Voce tem acesso ao mem0 para entender o contexto do projeto
+- docs/project-phases.md — plano completo de fases
+- docs/user-stories.md — user stories
+- docs/project-description.md — descricao geral
+
+## Sua tarefa agora
+Implemente COMPLETAMENTE a fase descrita abaixo.
+
+Para cada item:
+1. Implemente o codigo completo (nao deixe TODOs ou placeholders)
+2. Crie os testes listados
+3. Rode os testes com o subagent
+4. Se um teste falhar, corrija o codigo e rode novamente
+5. So passe pro proximo item quando os testes passarem
+
+## Regras obrigatorias
+- LEIA o CLAUDE.md antes de comecar — ele contem as convencoes do projeto
+- Todos os comandos devem usar ./vendor/bin/sail (Docker/Sail)
+- Factories devem criar todas as dependencias (role, user, product, etc.)
+- Nomes de classes, arquivos e metodos devem seguir EXATAMENTE o que esta descrito
+- Nao pule nenhum item marcado com [ ]
+- Ao final utilize o subagent de testes para validar se esta tudo correto
+
+## Fase a implementar
+## Phase 2 — Query understanding & vertical retrieval (the biggest quality jump)
+
+### Phase 2.1 — `QueryEnricher` agent (text path)
+- [ ] **2.1.1** — Create `app/Ai/Agents/QueryEnricher.php` implementing `Agent` + `HasStructuredOutput`. Uses `config('worthly.harness.cheap_model')`. Output schema matches `EnrichedQuery` DTO (raw_query, productName, brand, category, region, useCase, budgetHint, intent, subQueries[], hydePassages[]).
+  - Test (`tests/Feature/Ai/QueryEnricherSchemaTest.php`): asserts `schema()` returns the typed builder shape with `intent` as an enum of the four `Intent` cases and `sub_queries` as `array(min:3, max:5).items(string)`.
+- [ ] **2.1.2** — Add `enrich(string $rawQuery): EnrichedQuery` method that calls the SDK and hydrates the DTO.
+  - Test (`tests/Feature/Ai/QueryEnricherEnrichTest.php`): fake by subclass returns canned structured output; assert mapping to `EnrichedQuery` covers all optional fields and that an `intent === Unknown` response is preserved (not silently corrected).
+- [ ] **2.1.3** — Sub-query generator yields four axes (price, professional review, opinion, alternatives) when the model returns generic queries, by enforcing a min via prompt + schema.
+  - Test (`tests/Feature/Ai/QueryEnricherAxesTest.php`): with a fake returning 4 sub-queries, assert no de-duplication collapses them; with a fake returning fewer than `config('worthly.harness.query_enricher.sub_query_count')`, assert the service raises a `LlmProviderException` (or the pipeline short-circuits to `insufficient_evidence` — pick and assert).
+
+### Phase 2.2 — `ProductIdentifier` agent (image path)
+- [ ] **2.2.1** — Create `app/Ai/Agents/ProductIdentifier.php` — vision-only, cheap model. Single method `identify(string $imagePath, string $disk = 'analysis_images'): EnrichedQuery`.
+  - Test (`tests/Feature/Ai/ProductIdentifierTest.php`): fake by subclass returns canned output for a fixture image, asserts the returned `EnrichedQuery` has `rawQuery` filled with extracted visible text and `intent !== Unknown` when `productName !== null`.
+- [ ] **2.2.2** — Low-confidence short-circuit: when `productName === null`, the pipeline must return a `product_not_identified` response without entering retrieval.
+  - Test (`tests/Feature/Ai/Harness/AnalysisPipelineProductNotIdentifiedTest.php`): fake `ProductIdentifier` returns `productName = null`, assert no Retriever was hit (`Http::assertNothingSent()` against retriever clients), assert `Analysis.recommendation_decision === insufficient_evidence`, assert `harness_runs.retrieval_calls === 0`.
+
+### Phase 2.3 — Retrieval HTTP client wrappers
+- [ ] **2.3.1** — `app/Ai/Harness/Retrieval/Clients/TavilyClient.php` wraps Tavily's `/search` endpoint, reads `TAVILY_TOKEN` from env.
+  - Test (`tests/Feature/Ai/Harness/Clients/TavilyClientTest.php`): with `Http::fake()`, asserts the outgoing request URL/host, `Authorization` header, and that the `include_domains` parameter is passed through verbatim.
+- [ ] **2.3.2** — `SearchApiClient.php` wraps SearchApi.io Google Shopping engine (`engine=google_shopping`), reads `SEARCH_TOKEN`.
+  - Test (`tests/Feature/Ai/Harness/Clients/SearchApiClientTest.php`): `Http::fake()` asserts URL, `api_key` query string, decodes a canned shopping JSON into a list of normalized rows (title, url, price, source).
+- [ ] **2.3.3** — `MercadoLivreClient.php` wraps `/sites/MLB/search` (no auth).
+  - Test (`tests/Feature/Ai/Harness/Clients/MercadoLivreClientTest.php`): `Http::fake()` asserts the URL has no `Authorization` header, the canned ML response decodes into the same row shape.
+- [ ] **2.3.4** — Bind all three clients in `AppServiceProvider` as singletons so they are swappable in tests.
+  - Test (`tests/Feature/Ai/Harness/Clients/ClientBindingTest.php`): asserts `app(TavilyClient::class)` is the same instance across two resolves and that `$this->app->instance(TavilyClient::class, $fake)` overrides cleanly.
+
+### Phase 2.4 — Retriever adapters
+- [ ] **2.4.1** — `ProfessionalReviewRetriever` (Tavily, whitelisted domains from config). Maps Tavily results → `EvidenceItem` with `sourceChannel = 'reviews'`, authority from `harness.authority` table.
+  - Test (`tests/Feature/Ai/Harness/Retrieval/ProfessionalReviewRetrieverTest.php`): asserts only whitelisted domains survive, `authorityScore` is filled from config, items older than the cap are still returned (recency filter is L3's job), `isEligible()` returns true for any non-Unknown intent.
+- [ ] **2.4.2** — `ShoppingRetriever` fans out to SearchApi + MercadoLivre in parallel via `Http::pool()` and merges by URL.
+  - Test (`tests/Feature/Ai/Harness/Retrieval/ShoppingRetrieverTest.php`): `Http::fake()` for both providers, assert both are called exactly once per `retrieve()`, dedup by URL works, merged result is ordered by `rawRelevance` desc.
+- [ ] **2.4.3** — `GeneralWebRetriever` (Tavily open web, no whitelist).
+  - Test (`tests/Feature/Ai/Harness/Retrieval/GeneralWebRetrieverTest.php`): asserts no `include_domains` is sent, results tagged with `sourceChannel = 'general'`, unknown-domain `authorityScore` defaults to `0.4`.
+- [ ] **2.4.4** — Register adapters in a config-driven array so disabling `harness.retrievers.<channel>.enabled` removes them from the router.
+  - Test (`tests/Feature/Ai/Harness/Retrieval/AdapterRegistryTest.php`): toggling each channel off in config produces a router with one fewer adapter in its `$retrievers` list.
+
+### Phase 2.5 — `RetrievalRouter`
+- [ ] **2.5.1** — Implement `RetrievalRouter::gather(EnrichedQuery): EvidenceBundle` with parallel fan-out, per-adapter timeout, per-adapter and global item caps.
+  - Test (`tests/Feature/Ai/Harness/Retrieval/RetrievalRouterParallelismTest.php`): two fake adapters; the slow one sleeps past its timeout, the fast one returns 3 items; assert the bundle returns the 3 items, the slow adapter's failure is logged (Laravel log fake), `harness_runs.retrieval_calls === 2`.
+- [ ] **2.5.2** — Zero-evidence short-circuit: when all adapters return empty, set `recommendation.decision = insufficient_evidence` without calling L4.
+  - Test (`tests/Feature/Ai/Harness/Retrieval/RetrievalRouterEmptyBundleTest.php`): all adapters faked to return `[]`, assert `ProductReviewer` is never invoked (subclass spy asserts call count), Analysis row has `insufficient_evidence`, `degraded = true`.
+- [ ] **2.5.3** — Per-adapter retrieval cache (Redis, TTL from config per channel).
+  - Test (`tests/Feature/Ai/Harness/Retrieval/RetrievalCacheTest.php`): with `cache.default` set to `array`, first call hits HTTP fake once; second identical call hits cache (HTTP fake assert called only once total); after `Cache::flush()`, third call hits HTTP again.
+
+### Phase 2.6 — Pipeline wires L1 + L2
+- [ ] **2.6.1** — Update `AnalysisPipeline::run()` to call `QueryEnricher`/`ProductIdentifier` then `RetrievalRouter`, then L4.
+  - Test (`tests/Feature/Ai/Harness/AnalysisPipelineL1L2Test.php`): fakes for enricher, router, and agent; assert the order of calls (enricher → router → agent) and that the agent receives a non-empty `EvidenceBundle` derived from the router output.
+- [ ] **2.6.2** — Image flow: `analyzeImage` uses `ProductIdentifier` only (no `QueryEnricher`), keeping image flows at 2 LLM calls.
+  - Test (`tests/Feature/Ai/Harness/AnalysisPipelineImagePathTest.php`): spy on both agents; for an image input, `QueryEnricher::enrich` is **never** called, `ProductIdentifier::identify` is called exactly once.
+
+---
